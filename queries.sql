@@ -103,3 +103,9 @@ select customer,
        seller
 from tab
 where rn = 1;
+
+/* продажи задание 7  - Результаты проведенного исследования продавцов 
+и покупателей следует представить в виде дашборда. Ссылка на дашборд ниже.*/
+
+https://e79fd5a4.eu5a.app.preset.io/superset/dashboard/11/?native_filters_key=V59TmHANSGnofxa0dMQkdMdhcHSKzxc0C6mPi_OaLZZWvVwG_sAWy8FbODZBg3bm
+
