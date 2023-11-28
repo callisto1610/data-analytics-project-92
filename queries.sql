@@ -4,8 +4,8 @@ from customers c ;
 
 /* продажи задание 5.1 -  отчет о десятке лучших продавцов */
 select concat(employees.first_name, ' ',employees.last_name) as name,
-    SUM(sales.quantity) as operations,
-    SUM(products.price*sales.quantity) as income
+    COUNT(sales.sales_person_id) as operations,
+    FLOOR(SUM(products.price*sales.quantity)) as income
 from sales
 join employees
 on sales.sales_person_id = employees.employee_id
@@ -34,10 +34,10 @@ on sales.product_id = products.product_id)
 order by average_income asc;
 
 /* продажи задание 5.3 -  отчет о выручке по дням недели */
-create view DayProfit as 
-select concat(employees.first_name, ' ', employees.last_name) as name,
+with DayProfit as 
+(select concat(employees.first_name, ' ', employees.last_name) as name,
     to_char(sales.sale_date, 'ID') as weekday_num,
-    to_char(sales.sale_date, 'Day') as weekday,
+    to_char(sales.sale_date, 'day') as weekday,
     round(sum(sales.quantity*products.price),0) as income
 from sales
 join employees
@@ -45,8 +45,8 @@ on sales.sales_person_id = employees.employee_id
 join products
 on sales.product_id = products.product_id
 group by concat(employees.first_name, ' ', employees.last_name),
-    to_char(sales.sale_date, 'ID'), to_char(sales.sale_date, 'Day')
-order by to_char(sales.sale_date, 'ID'), to_char(sales.sale_date, 'Day'), name;
+    to_char(sales.sale_date, 'ID'), to_char(sales.sale_date, 'day')
+order by to_char(sales.sale_date, 'ID'), to_char(sales.sale_date, 'day'), name)
 
 select DayProfit.name,
        DayProfit.weekday,
@@ -57,14 +57,12 @@ order by DayProfit.weekday_num, DayProfit.name;
 /* продажи задание 6.1  - количество покупателей в разных возрастных группах: 16-25, 26-40 и 40+ */
 
 select case  
-	when c.age >= 16 and c.age <= 25 then '16-25'
-	when c.age >= 26 and c.age <= 40 then '26-40'
+	when age >= 16 and age <= 25 then '16-25'
+	when age >= 26 and age <= 40 then '26-40'
 	else '40+'
 	end as age_category,
 COUNT(*) as count
-from sales s 
-left join customers c 
-on s.customer_id = c.customer_id
+from customers c 
 group by age_category
 order by age_category;
 
@@ -73,7 +71,7 @@ order by age_category;
 
 select to_char(sale_date, 'YYYY-MM') as date,
        COUNT(distinct customer_id) as total_customers,
-       SUM(p.price* s.quantity) as income
+       FLOOR(SUM(p.price* s.quantity)) as income
 from sales s 
 left join products p 
 on s.product_id = p.product_id
@@ -95,8 +93,7 @@ left join customers c
 on c.customer_id = s.customer_id
 left join employees e 
 on e.employee_id = s.sales_person_id 
-where (p.price*s.quantity) = 0
-order by s.customer_id)
+where (p.price*s.quantity) = 0)
 
 select customer,
        sale_date,
