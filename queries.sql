@@ -82,21 +82,21 @@ order by date ASC;
 (акционные товары отпускали со стоимостью равной 0)*/
 
 with tab as 
-(select CONCAT(c.first_name, ' ', c.last_name) as customer,
-       s.sale_date as sale_date,
-       CONCAT(e.first_name, ' ', e.last_name) as seller,
-       row_number() over (partition by s.customer_id order by s.sale_date) as rn 
-from sales s 
-left join products p 
-on s.product_id = s.product_id 
-left join customers c 
-on c.customer_id = s.customer_id
-left join employees e 
-on e.employee_id = s.sales_person_id 
-where (p.price*s.quantity) = 0)
+(select s.sales_person_id, s.customer_id, s.product_id, s.sale_date,
+        SUM(p.price* s.quantity) as total_price,
+        row_number() over (partition by customer_id order by sale_date) as rn
+from sales s
+inner join products p 
+on p.product_id = s.product_id 
+group by s.sales_person_id, s.customer_id, s.product_id, s.sale_date)
 
-select customer,
-       sale_date,
-       seller
+select CONCAT(c.first_name, ' ', c.last_name) as customer,
+       tab.sale_date as sale_date,
+       CONCAT(e.first_name, ' ', e.last_name) as seller
 from tab
-where rn = 1;
+inner join customers c 
+on c.customer_id = tab.customer_id
+inner join employees e 
+on e.employee_id = tab.sales_person_id
+where rn = 1 and total_price = 0
+order by tab.customer_id;
